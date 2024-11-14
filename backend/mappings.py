@@ -22,9 +22,7 @@ TABLE_MAPPING = {
     "USG": "usg_total_2024"
 }
 
-
 COLUMN_MAPPING = {
-
     "Oftalmologie_Insurance": {
         "doctor_name": "doctor_name"
     },
@@ -49,9 +47,8 @@ COLUMN_MAPPING = {
     "Total": {
         "doctor_name": "category"
     },
-
     "Angio_Insurance": {
-        "doctor_name": "doctor_program"  # Используем doctor_program
+        "doctor_name": "doctor_program"
     },
     "Angio": {
         "doctor_name": "doctor_name"

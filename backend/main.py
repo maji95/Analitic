@@ -1,3 +1,4 @@
+# backend/main.py
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from urllib.parse import unquote
@@ -38,9 +39,9 @@ def format_data(data, button_name, available_columns):
     for row in data:
         formatted_row = {}
         if first_column_key in row and first_column_key in available_columns:
-            formatted_row[first_column_key] = row[first_column_key]
+            formatted_row["doctor_name"] = row[first_column_key]
         else:
-            formatted_row[first_column_key] = "Unknown"
+            formatted_row["doctor_name"] = "Unknown"
         
         for month in ["January", "February", "March", "April", "May", "June",
                      "July", "August", "September", "October", "November", "December"]:
@@ -49,32 +50,16 @@ def format_data(data, button_name, available_columns):
     
     return formatted_data
 
-
-
 @app.get("/db-table/{button_name}")
 def get_table_data(button_name: str):
-    try:
-        decoded_button_name = unquote(button_name)
-        table_name = TABLE_MAPPING.get(decoded_button_name)
-        if not table_name:
-            raise HTTPException(status_code=404, detail=f"No table mapping found for button '{decoded_button_name}'")
-
-        connection = get_db_connection()
-        with connection.cursor() as cursor:
-            # Выполняем запрос, чтобы получить информацию о колонках таблицы
-            cursor.execute(f"SHOW COLUMNS FROM `{table_name}`")
-            columns_info = cursor.fetchall()
-            available_columns = [column['Field'] for column in columns_info]
-
-            # Выполняем запрос, чтобы получить данные из таблицы
-            cursor.execute(f"SELECT * FROM `{table_name}`")
-            rows = cursor.fetchall()
-
-        connection.close()
-
-        # Форматируем данные с учетом доступных колонок
-        formatted_data = format_data(rows, decoded_button_name, available_columns)
-        return {"status": "success", "data": formatted_data}
-
-    except Exception as e:
-        return {"status": "error", "message": str(e)}
+    table_name = TABLE_MAPPING.get(button_name)
+    if not table_name:
+        raise HTTPException(status_code=404, detail=f"No table mapping found for button '{button_name}'")
+    
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute(f"SELECT * FROM {table_name}")
+    fetched_data = cursor.fetchall()
+    available_columns = [desc[0] for desc in cursor.description]
+    formatted_data = format_data(fetched_data, button_name, available_columns)
+    return {"status": "success", "data": formatted_data}
